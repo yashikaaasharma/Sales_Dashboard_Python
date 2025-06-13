@@ -1,0 +1,49 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load the cleaned dataset
+df = pd.read_csv("Cleaned_Superstore_Sales.csv", parse_dates=["Order Date"])
+
+# Total KPIs
+total_sales = df["Sales"].sum()
+total_profit = df["Profit"].sum()
+
+# Plot style
+sns.set_style("whitegrid")
+
+# Create month column if not already present
+if "Month" not in df.columns:
+    df["Month"] = df["Order Date"].dt.to_period("M").astype(str)
+
+# Set up 2x2 dashboard
+fig, axes = plt.subplots(2, 2, figsize=(14, 10))
+fig.suptitle("📊 Python Sales Dashboard – Task 8", fontsize=16, fontweight='bold')
+
+# 1. Line Chart: Monthly Sales
+monthly = df.groupby("Month")["Sales"].sum().reset_index()
+axes[0, 0].plot(monthly["Month"], monthly["Sales"], marker='o', color='royalblue')
+axes[0, 0].set_title("Monthly Sales Trend")
+axes[0, 0].tick_params(axis='x', rotation=45)
+axes[0, 0].set_ylabel("Sales (₹)")
+
+# 2. Bar Chart: Sales by Region
+region = df.groupby("Region")["Sales"].sum().reset_index()
+sns.barplot(x="Region", y="Sales", data=region, ax=axes[0, 1], palette="crest")
+axes[0, 1].set_title("Sales by Region")
+
+# 3. Pie Chart: Sales by Category
+category = df.groupby("Category")["Sales"].sum()
+axes[1, 0].pie(category, labels=category.index, autopct="%1.1f%%", startangle=90)
+axes[1, 0].set_title("Sales by Category")
+
+# 4. KPIs (Text)
+axes[1, 1].axis("off")
+kpi_text = f"💰 Total Sales: ₹{total_sales:,.2f}\n💹 Total Profit: ₹{total_profit:,.2f}"
+axes[1, 1].text(0.5, 0.6, kpi_text, ha="center", va="center", fontsize=14,
+                bbox=dict(facecolor="lavender", boxstyle="round,pad=1"))
+
+# Save and display
+plt.tight_layout(rect=[0, 0.03, 1, 0.95])
+plt.savefig("sales_dashboard.png")
+plt.show()
